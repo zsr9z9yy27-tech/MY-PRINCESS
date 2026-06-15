@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tyra ♥</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Great+Vibes&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: radial-gradient(ellipse at center, #1a0020 0%, #08000d 60%, #000005 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Dancing Script', cursive;
+  }
+
+  /* ── ambient background glow orbs ── */
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+    animation: orbFloat 8s ease-in-out infinite alternate;
+  }
+  .bg-orb.o1 { width:400px;height:400px;background:#ff0055;top:-100px;left:-100px;animation-delay:0s; }
+  .bg-orb.o2 { width:300px;height:300px;background:#cc0077;bottom:-80px;right:-80px;animation-delay:-3s; }
+  .bg-orb.o3 { width:200px;height:200px;background:#ff3399;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-5s; }
+
+  @keyframes orbFloat {
+    from { transform: scale(1) translate(0,0); }
+    to   { transform: scale(1.2) translate(20px,20px); }
+  }
+
+  /* ── scene wrapper ── */
+  #scene {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── canvas sits behind everything ── */
+  #heartCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+  }
+
+  /* ── CSS word particles that orbit / fill ── */
+  .word {
+    position: absolute;
+    font-family: 'Dancing Script', cursive;
+    font-weight: 700;
+    color: #fff;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 3;
+    text-shadow:
+      0 0 6px #ff3399,
+      0 0 14px #ff3399,
+      0 0 30px #ff006699,
+      0 0 50px #ff006633;
+    animation: wordLife var(--dur) ease-in-out var(--delay) infinite;
+    transform: translate(-50%, -50%);
+    left: var(--x);
+    top:  var(--y);
+    font-size: var(--size);
+    opacity: 0;
+  }
+
+  @keyframes wordLife {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.4); filter:blur(4px); }
+    15%  { opacity:1; transform:translate(-50%,-50%) scale(1);   filter:blur(0); }
+    75%  { opacity:0.85; transform:translate(-50%,-50%) scale(1); filter:blur(0); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(0.6); filter:blur(3px); }
+  }
+
+  /* outline words travel along the heart path via JS-set CSS custom props */
+  .outline-word {
+    position: absolute;
+    font-family: 'Great Vibes', cursive;
+    font-size: var(--size);
+    color: #ffb3d0;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 4;
+    transform: translate(-50%,-50%);
+    text-shadow:
+      0 0 8px #ff3399,
+      0 0 20px #ff006688,
+      0 0 40px #ff006644;
+    opacity: 0;
+    animation: outlineLife var(--dur) linear var(--delay) infinite;
+    left: 250px; top: 250px;
+  }
+
+  @keyframes outlineLife {
+    0%   { opacity:0; }
+    8%   { opacity:1; }
+    85%  { opacity:0.9; }
+    100% { opacity:0; }
+  }
+
+  /* ── big centre title ── */
+  #centerLabel {
+    position: absolute;
+    z-index: 6;
+    font-family: 'Great Vibes', cursive;
+    font-size: 3.6rem;
+    color: #fff;
+    text-shadow:
+      0 0 10px #ff3399,
+      0 0 25px #ff3399,
+      0 0 55px #ff006688,
+      0 0 90px #ff006644;
+    animation: labelPulse 2s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @keyframes labelPulse {
+    0%,100% { transform: scale(1);   text-shadow: 0 0 10px #ff3399, 0 0 25px #ff3399, 0 0 55px #ff006688; }
+    50%      { transform: scale(1.07); text-shadow: 0 0 14px #ff66aa, 0 0 35px #ff3399, 0 0 70px #ff006699; }
+  }
+
+  /* ── floating sparkles ── */
+  .sparkle {
+    position: absolute;
+    width: var(--sz);
+    height: var(--sz);
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffaacc, #ff3399);
+    pointer-events: none;
+    z-index: 5;
+    animation: sparklePop var(--dur) ease-out var(--delay) infinite;
+    left: var(--x); top: var(--y);
+    opacity: 0;
+  }
+
+  @keyframes sparklePop {
+    0%  { opacity:0; transform:scale(0) translateY(0); }
+    20% { opacity:1; transform:scale(1) translateY(-12px); }
+    80% { opacity:0.4; transform:scale(0.5) translateY(-40px); }
+    100%{ opacity:0; transform:scale(0) translateY(-65px); }
+  }
+
+  /* ── bottom subtitle ── */
+  #subtitle {
+    position: relative;
+    z-index: 10;
+    margin-top: 18px;
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.3rem;
+    color: #ff99bb;
+    letter-spacing: 5px;
+    text-shadow: 0 0 12px #ff339966;
+    animation: subtitleFade 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes subtitleFade {
+    from { opacity:0.5; letter-spacing:4px; }
+    to   { opacity:1;   letter-spacing:7px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ambient bg -->
+<div class="bg-orb o1"></div>
+<div class="bg-orb o2"></div>
+<div class="bg-orb o3"></div>
+
+<div id="scene">
+  <canvas id="heartCanvas" width="500" height="500"></canvas>
+  <div id="wordLayer"></div>
+  <div id="outlineLayer"></div>
+  <div id="sparkleLayer"></div>
+  <span id="centerLabel">Tyra</span>
+</div>
+
+<div id="subtitle">FOR MY BEAUTIFUL PRINCESS ♥</div>
+
+<script>
+const W = 500, H = 500;
+const CX = W/2, CY = H/2 + 18;
+const HS = W * 0.040;
+const WORD = 'Tyra';
+
+// ── Heart math ──────────────────────────────────────────────────────────────
+function hx(t){ return 16 * Math.pow(Math.sin(t), 3); }
+function hy(t){ return -(13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t)); }
+
+function heartPoint(t) {
+  return { x: CX + hx(t)*HS, y: CY + hy(t)*HS };
+}
+
+// ── Canvas: glowing heart outline ──────────────────────────────────────────
+const canvas = document.getElementById('heartCanvas');
+const ctx = canvas.getContext('2d');
+
+function drawHeartPath() {
+  ctx.beginPath();
+  for (let t = 0; t <= Math.PI*2; t += 0.005) {
+    const {x,y} = heartPoint(t);
+    t === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+}
+
+let tick = 0;
+function renderCanvas() {
+  ctx.clearRect(0,0,W,H);
+  tick += 0.018;
+
+  const pulse = 0.5 + 0.15 * Math.sin(tick * 1.4);
+
+  // outer glow layers
+  [40, 22, 12, 5].forEach((blur, i) => {
+    ctx.save();
+    drawHeartPath();
+    ctx.strokeStyle = `rgba(255,30,100,${0.12 + i*0.06})`;
+    ctx.lineWidth = 2 + i * 0.5;
+    ctx.shadowColor = '#ff0055';
+    ctx.shadowBlur = blur;
+    ctx.globalAlpha = pulse + i * 0.05;
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // crisp inner line
+  ctx.save();
+  drawHeartPath();
+  ctx.strokeStyle = '#ffaad0';
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.9;
+  ctx.shadowColor = '#ff3399';
+  ctx.shadowBlur = 6;
+  ctx.stroke();
+  ctx.restore();
+
+  // soft fill
+  ctx.save();
+  drawHeartPath();
+  const grad = ctx.createRadialGradient(CX, CY-20, 10, CX, CY, 180);
+  grad.addColorStop(0, 'rgba(255,50,120,0.07)');
+  grad.addColorStop(1, 'rgba(255,0,80,0.01)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.restore();
+
+  requestAnimationFrame(renderCanvas);
+}
+renderCanvas();
+
+// ── Build pixel mask ────────────────────────────────────────────────────────
+const mSize = 400;
+const mCanvas = document.createElement('canvas');
+mCanvas.width = mSize; mCanvas.height = mSize;
+const mc = mCanvas.getContext('2d');
+const mScale = mSize * 0.040;
+const mCX = mSize/2, mCY = mSize/2 + mSize*0.036;
+mc.beginPath();
+for (let t=0; t<=Math.PI*2; t+=0.005){
+  const x = mCX + hx(t)*mScale, y = mCY + hy(t)*mScale;
+  t===0 ? mc.moveTo(x,y) : mc.lineTo(x,y);
+}
+mc.closePath(); mc.fillStyle='#fff'; mc.fill();
+const md = mc.getImageData(0,0,mSize,mSize).data;
+
+function inHeart(px,py) {
+  const ix = Math.round(px * mSize / W);
+  const iy = Math.round(py * mSize / H);
+  if (ix<0||ix>=mSize||iy<0||iy>=mSize) return false;
+  return md[(iy*mSize+ix)*4+3] > 128;
+}
+
+// ── Fill word layer (CSS animated divs) ─────────────────────────────────────
+const wordLayer = document.getElementById('wordLayer');
+const slots = [];
+for (let a=0; slots.length<75 && a<50000; a++) {
+  const px = W*0.1 + Math.random()*W*0.8;
+  const py = H*0.08 + Math.random()*H*0.84;
+  if (inHeart(px, py)) slots.push({x:px, y:py});
+}
+
+slots.forEach((s, i) => {
+  const el = document.createElement('div');
+  el.className = 'word';
+  const sz = 10 + Math.random() * 14;
+  const dur = 2.5 + Math.random() * 3;
+  const delay = -(Math.random() * dur);  // stagger: start mid-animation
+  el.style.cssText = `
+    --x: ${s.x}px;
+    --y: ${s.y}px;
+    --size: ${sz}px;
+    --dur: ${dur}s;
+    --delay: ${delay}s;
+  `;
+  el.textContent = WORD;
+  wordLayer.appendChild(el);
+});
+
+// ── Outline word layer (JS moves them along heart path) ─────────────────────
+const outlineLayer = document.getElementById('outlineLayer');
+const NUM_OUTLINE = 30;
+const outlineEls = [];
+
+for (let i = 0; i < NUM_OUTLINE; i++) {
+  const el = document.createElement('div');
+  el.className = 'outline-word';
+  const sz = 13 + Math.random() * 11;
+  const dur = 5 + Math.random() * 4;
+  const delay = -(i / NUM_OUTLINE) * dur;
+  el.style.setProperty('--size', sz + 'px');
+  el.style.setProperty('--dur', dur + 's');
+  el.style.setProperty('--delay', delay + 's');
+  el.textContent = WORD;
+  outlineLayer.appendChild(el);
+
+  const speed = 0.0005 + Math.random() * 0.0004;
+  outlineEls.push({
+    el,
+    progress: i / NUM_OUTLINE,
+    speed,
+    startTime: performance.now() + (i / NUM_OUTLINE) * 6000
+  });
+}
+
+// Animate outline words along heart path
+function animateOutline() {
+  const now = performance.now();
+  outlineEls.forEach(p => {
+    p.progress += p.speed;
+    if (p.progress > 1) p.progress -= 1;
+    const t = p.progress * Math.PI * 2;
+    const pt = heartPoint(t);
+    p.el.style.left = pt.x + 'px';
+    p.el.style.top  = pt.y + 'px';
+  });
+  requestAnimationFrame(animateOutline);
+}
+animateOutline();
+
+// ── Sparkle layer ───────────────────────────────────────────────────────────
+const sparkleLayer = document.getElementById('sparkleLayer');
+
+function spawnSparkle() {
+  // pick a random point on or near the heart outline
+  const t = Math.random() * Math.PI * 2;
+  const pt = heartPoint(t);
+  const jitter = 15;
+  const x = pt.x + (Math.random()-0.5)*jitter;
+  const y = pt.y + (Math.random()-0.5)*jitter;
+
+  const el = document.createElement('div');
+  el.className = 'sparkle';
+  const sz = 3 + Math.random() * 5;
+  const dur = 1.2 + Math.random() * 1.4;
+  el.style.cssText = `
+    --x: ${x}px;
+    --y: ${y}px;
+    --sz: ${sz}px;
+    --dur: ${dur}s;
+    --delay: 0s;
+    left: ${x}px;
+    top:  ${y}px;
+    width: ${sz}px;
+    height: ${sz}px;
+    animation-duration: ${dur}s;
+  `;
+  sparkleLayer.appendChild(el);
+  setTimeout(() => el.remove(), dur * 1000 + 100);
+}
+
+setInterval(spawnSparkle, 120);
+</script>
+</body>
+</html>
